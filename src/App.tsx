@@ -7,14 +7,16 @@ import { SignupPage } from './pages/SignupPage';
 import { RequestFilingPage } from './pages/RequestFilingPage';
 import { useAuth } from './contexts/AuthContext';
 import { Toaster } from "@/components/ui/toaster"; // Toaster 컴포넌트를 여기서 import 합니다.
+import { MyFilingsPage } from './pages/MyFilingsPage'; // 실제 컴포넌트 import
 
 // 임시 페이지 컴포넌트
 const ExpertsPage = () => <div><h1>전문가 찾기 페이지</h1></div>;
-const MyFilingsPage = () => {
-  const { session } = useAuth();
-  if (!session) return <Navigate to="/login" replace />;
-  return <div><h1>나의 의뢰내역 페이지 (보호됨)</h1><p>의뢰가 성공적으로 접수되면 여기 목록이 나타납니다.</p></div>;
-}
+// const MyFilingsPage = () => {
+//   const { session } = useAuth();
+//   if (!session) return <Navigate to="/login" replace />;
+//   return <div><h1>나의 의뢰내역 페이지 (보호됨)</h1><p>의뢰가 성공적으로 접수되면 여기 목록이 나타납니다.</p></div>;
+// }
+
 const NotFoundPage = () => <div><h1>404 - 페이지를 찾을 수 없습니다.</h1></div>;
 
 

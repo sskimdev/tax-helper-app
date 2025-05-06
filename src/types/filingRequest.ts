@@ -26,12 +26,11 @@ export const filingRequestSchema = z.object({
 });
 
 // Zod 스키마로부터 TypeScript 타입 추론
-// 타입을 명시적으로 선언하여 export 문제 해결
 export type FilingRequestFormData = z.infer<typeof filingRequestSchema>;
 
 // Supabase 데이터베이스 테이블 타입 정의 (더 상세하게 정의할 수 있음)
 // 실제 DB 컬럼과 일치시키는 것이 중요
-export interface FilingRequest {
+export type FilingRequest = {
   id: string; // uuid
   user_id: string; // uuid
   created_at: string; // timestamptz
