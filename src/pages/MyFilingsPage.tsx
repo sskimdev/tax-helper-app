@@ -150,9 +150,12 @@ export function MyFilingsPage() {
                         {translateStatus(request.status)}
                     </Badge>
                 </TableCell>
-                {/* <TableCell className="text-right">
-                    <Button variant="outline" size="sm">상세보기</Button>
-                </TableCell> */}
+                <TableCell className="text-right">
+                    {/* 상세 보기 버튼/링크 추가 */}
+                    <Link to={`/my-filings/${request.id}`}>
+                        <Button variant="outline" size="sm">상세보기</Button>
+                    </Link>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

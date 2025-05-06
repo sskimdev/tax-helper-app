@@ -5,6 +5,7 @@ import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { RequestFilingPage } from './pages/RequestFilingPage';
+import { FilingRequestDetailPage } from './pages/FilingRequestDetailPage'; // 상세 페이지 import
 import { useAuth } from './contexts/AuthContext';
 import { Toaster } from "@/components/ui/toaster"; // Toaster 컴포넌트를 여기서 import 합니다.
 import { MyFilingsPage } from './pages/MyFilingsPage'; // 실제 컴포넌트 import
