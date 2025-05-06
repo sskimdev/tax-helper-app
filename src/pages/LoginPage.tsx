@@ -1,12 +1,12 @@
 // src/pages/LoginPage.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // useEffect 임포트 추가
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from '@/contexts/AuthContext'; // useAuth 임포트
+import { useAuth } from '@/contexts/AuthContext';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -14,7 +14,7 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { session } = useAuth(); // 로그인 상태 확인용
+  const { session } = useAuth();
 
   // 이미 로그인 되어 있다면 홈으로 리디렉션
   useEffect(() => {
@@ -35,7 +35,6 @@ export function LoginPage() {
       if (error) throw error;
       // 성공 시 onAuthStateChange가 감지하여 AuthContext 상태 변경 및 리디렉션 (App.tsx 또는 Layout에서 처리)
       // 여기서는 별도 navigate('/')를 하지 않고, AuthContext 변경에 따른 리디렉션을 기다립니다.
-      // 만약 즉시 리디렉션이 필요하면 navigate('/') 호출
     } catch (error: any) {
       setError(error.error_description || error.message);
     } finally {
