@@ -1,0 +1,21 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ],
+  "compilerOptions": {
+    /* Shadcn UI Alias 설정 추가 */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    },
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    /* 끝: Shadcn UI Alias 설정 추가 */
+    // "include": ["src"],
+    // "references": [{ "path": "./tsconfig.node.json" }]
+  }
+}
