@@ -1,7 +1,8 @@
 // src/contexts/AuthContext.tsx
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import type { Session, User } from '@supabase/supabase-js';
+import type { Session, User, AuthChangeEvent, Subscription } from '@supabase/supabase-js';
 
 interface AuthContextType {
   session: Session | null;
@@ -19,22 +20,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     setIsLoading(true);
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    supabase.auth.getSession().then(({ data }: { data: { session: Session | null } }) => {
+      setSession(data.session);
+      setUser(data.session?.user ?? null);
       setIsLoading(false);
+    }).catch(() => {
+        setIsLoading(false); // 에러 발생 시에도 로딩 상태 해제
     });
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+    // onAuthStateChange 리스너 설정
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event: AuthChangeEvent, session: Session | null) => {
         setSession(session);
         setUser(session?.user ?? null);
         setIsLoading(false);
       }
     );
 
+     // 디버깅: 실제 반환 구조 확인
+    console.log('subscription →', subscription);
+
+    // 클린업 함수: 컴포넌트 언마운트 시 리스너 구독 해제
     return () => {
-      authListener?.unsubscribe();
+      subscription?.unsubscribe();
     };
   }, []);
 
