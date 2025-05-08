@@ -1,8 +1,9 @@
 // src/pages/ExpertDetailPage.tsx
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom'; // Link 추가
+// useParams, useNavigate 는 react-router-dom 에서 가져옵니다. Link는 제거합니다.
+import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
-import type { Professional } from '@/types/professional'; // 타입 import
+import type { Professional } from '@/types/professional'; // 타입 사용 확인
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -14,19 +15,19 @@ import { Mail, Star } from 'lucide-react'; // 아이콘 추가 (lucide-react는 
 // 상세 정보 항목 표시 Helper 컴포넌트 (FilingRequestDetailPage와 유사)
 /* 
 const DetailItem = ({ label, value }: { label: string, value: React.ReactNode }) => (
-  <div>
-    <h3 className="text-sm font-medium text-muted-foreground mb-1">{label}</h3>
-    <div className="text-base">{value || '-'}</div>
-  </div>
-);
+    <div>
+      <h3 className="text-sm font-medium text-muted-foreground mb-1">{label}</h3>
+      <div className="text-base">{value || '-'}</div>
+    </div>
+  );
 */
 
 export function ExpertDetailPage() {
-  const { id } = useParams<{ id: string }>(); // URL에서 전문가 ID 가져오기
-  const navigate = useNavigate();
-  const [expert, setExpert] = useState<Professional | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+    const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate(); // useNavigate 훅 사용
+    const [expert, setExpert] = useState<Professional | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchExpertDetail() {
@@ -111,6 +112,18 @@ export function ExpertDetailPage() {
       );
   }
 
+  // 의뢰하기 버튼 클릭 핸들러
+  const handleRequestClick = (): void => {
+    if (expert?.id) {
+        // professional_id 쿼리 파라미터를 포함하여 /request-filing 으로 이동
+        navigate(`/request-filing?professional_id=${expert.id}`);
+    } else {
+        // 혹시 모를 에러 처리 (expert id가 없는 경우)
+        console.error("전문가 ID가 없어 의뢰 페이지로 이동할 수 없습니다.");
+        // 사용자에게 알림 표시 (toast 등)
+    }
+};
+
   return (
     <div className="space-y-6 max-w-3xl mx-auto p-4 md:p-6">
       {/* 뒤로가기 버튼 */}
@@ -167,25 +180,24 @@ export function ExpertDetailPage() {
           </div>
 
           {/* TODO: 경력, 학력, 수수료 정보 등 추가 섹션 */}
-          {/* 예시:
+          {/* 예시: */}
           <Separator />
           <div>
               <h3 className="text-lg font-semibold mb-2">수수료 정보</h3>
               <p className="text-sm text-muted-foreground">기본 수수료: ...</p>
               <p className="text-sm text-muted-foreground">추가 수수료 조건: ...</p>
           </div>
-          */}
+          {/* 예시: */}
 
           <Separator />
 
           {/* 상담 신청 버튼 */}
           <div className="text-center pt-4">
-              <Link to="/request-filing">
-                 <Button size="lg">이 전문가에게 신고 의뢰하기</Button>
-                 {/* TODO: 의뢰하기 시 이 전문가 ID를 전달하는 로직 추가 필요 */}
-              </Link>
-          </div>
-
+                {/* Link 대신 Button 사용 및 onClick 핸들러 연결 */}
+                <Button size="lg" onClick={handleRequestClick}>
+                    이 전문가에게 신고 의뢰하기
+                </Button>
+            </div>
         </CardContent>
       </Card>
 

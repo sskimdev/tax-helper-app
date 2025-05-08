@@ -1,40 +1,76 @@
 // src/pages/RequestFilingPage.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'; // useSearchParams 추가
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { supabase } from '@/lib/supabaseClient';
 import { filingRequestSchema, INCOME_TYPES } from '@/types/filingRequest';
 import type { FilingRequestFormData } from '@/types/filingRequest';
+import type { Professional } from '@/types/professional'; // 전문가 타입 import
 
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast"; // 수정된 import 경로
+import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // Alert 컴포넌트 추가
+import { Terminal } from "lucide-react"; // 아이콘 추가
+
+// Alert 컴포넌트 추가 필요
+// npx shadcn@latest add alert
 
 export function RequestFilingPage() {
   const { session, user } = useAuth();
   const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast(); // useToast 훅 사용
+  const { toast } = useToast();
+  const [searchParams] = useSearchParams(); // URL 쿼리 파라미터 읽기
+
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [professionalId, setProfessionalId] = useState<string | null>(null); // 지정된 전문가 ID 상태
+  const [designatedExpert, setDesignatedExpert] = useState<Professional | null>(null); // 지정된 전문가 정보 상태
+  const [expertLoading, setExpertLoading] = useState<boolean>(false); // 전문가 정보 로딩 상태
+
+  // 컴포넌트 마운트 시 쿼리 파라미터 확인
+  useEffect(() => {
+    const profId: string | null = searchParams.get('professional_id');
+    if (profId) {
+      setProfessionalId(profId);
+    }
+  }, [searchParams]);
+
+  // professionalId가 있으면 해당 전문가 정보 가져오기
+  useEffect(() => {
+    async function fetchDesignatedExpert() {
+      if (!professionalId) return;
+
+      setExpertLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('professionals')
+          .select('*')
+          .eq('id', professionalId)
+          .single();
+
+        if (error) throw error;
+        setDesignatedExpert(data);
+      } catch (error: any) {
+        console.error("지정 전문가 정보 조회 실패:", error);
+        toast({
+          title: "오류",
+          description: "지정된 전문가 정보를 불러오는데 실패했습니다.",
+          variant: "destructive",
+        });
+        // ID는 있지만 정보 조회를 실패하면 ID를 초기화하여 일반 의뢰로 진행하도록 할 수 있음
+        // setProfessionalId(null);
+      } finally {
+        setExpertLoading(false);
+      }
+    }
+    fetchDesignatedExpert();
+  }, [professionalId, toast]); // professionalId 변경 시 실행
 
   // 1. 폼 초기화 (react-hook-form)
   const currentYear = new Date().getFullYear();
@@ -49,7 +85,7 @@ export function RequestFilingPage() {
   });
 
   // 2. 제출 핸들러 정의
-  async function onSubmit(values: FilingRequestFormData) {
+  async function onSubmit(values: FilingRequestFormData): Promise<void> {
     if (!user) {
       toast({
         title: "오류",
@@ -61,21 +97,26 @@ export function RequestFilingPage() {
 
     setIsSubmitting(true);
     try {
-      const processedValues = {
+      const processedValues: any = { // 타입을 좀 더 유연하게 처리 (assigned_professional_id 추가 위해)
         ...values,
         estimated_income: values.estimated_income && !isNaN(values.estimated_income) ? values.estimated_income : null,
         user_id: user.id,
         status: 'submitted',
       };
 
+      // 지정된 전문가 ID가 있으면 함께 저장
+      if (professionalId) {
+        processedValues.assigned_professional_id = professionalId;
+        // 전문가가 지정되면 상태를 'assigned'로 바로 변경할 수도 있음 (정책에 따라 결정)
+        // processedValues.status = 'assigned';
+      }
+
       const { data, error } = await supabase
         .from('filing_requests')
         .insert([processedValues])
         .select();
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       console.log("신고 의뢰 저장 성공:", data);
       toast({
@@ -106,7 +147,20 @@ export function RequestFilingPage() {
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
         <CardTitle>종합소득세 신고 의뢰하기</CardTitle>
-        <CardDescription>아래 정보를 입력해주시면 전문가 매칭을 도와드립니다.</CardDescription>
+        {/* 지정된 전문가 정보 표시 */}
+        {expertLoading ? (
+            <CardDescription>지정된 전문가 정보를 불러오는 중...</CardDescription>
+        ) : designatedExpert ? (
+             <Alert>
+                <Terminal className="h-4 w-4" />
+                <AlertTitle>지정 전문가</AlertTitle>
+                <AlertDescription>
+                 {designatedExpert.name} 세무사님에게 직접 의뢰합니다.
+                </AlertDescription>
+            </Alert>
+        ) : (
+             <CardDescription>아래 정보를 입력해주시면 최적의 전문가를 찾아 매칭해 드립니다.</CardDescription>
+        )}
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -206,8 +260,8 @@ export function RequestFilingPage() {
                 </FormItem>
               )}
             />
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? '제출 중...' : '신고 의뢰 제출하기'}
+            <Button type="submit" disabled={isSubmitting || expertLoading}>
+              {isSubmitting ? '제출 중...' : (designatedExpert ? `${designatedExpert.name} 세무사에게 의뢰 제출` : '신고 의뢰 제출하기')}
             </Button>
           </form>
         </Form>
