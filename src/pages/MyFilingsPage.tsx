@@ -1,5 +1,5 @@
 // src/pages/MyFilingsPage.tsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';

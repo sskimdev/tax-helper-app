@@ -1,6 +1,6 @@
 // src/App.tsx
 import { MainLayout } from '@/components/layout/MainLayout';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
@@ -10,6 +10,7 @@ import { useAuth } from './contexts/AuthContext';
 import { Toaster } from "@/components/ui/toaster"; // Toaster 컴포넌트를 여기서 import 합니다.
 import { MyFilingsPage } from './pages/MyFilingsPage'; // 실제 컴포넌트 import
 import { ExpertsPage } from './pages/ExpertsPage'; // 실제 컴포넌트 import
+import { ExpertDetailPage } from './pages/ExpertDetailPage'; // 전문가 상세 페이지 import
 
 // 임시 페이지 컴포넌트
 // const ExpertsPage = () => <div><h1>전문가 찾기 페이지</h1></div>;
@@ -40,6 +41,8 @@ function App() {
         {/* 상세 페이지 라우트 추가 */}
         <Route path="/my-filings/:id" element={<FilingRequestDetailPage />} />
         <Route path="/experts" element={<ExpertsPage />} />
+        {/* 전문가 상세 페이지 라우트 추가 */}
+        <Route path="/experts/:id" element={<ExpertDetailPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
       {/* Toaster 컴포넌트를 MainLayout 내부, Routes 외부에 렌더링합니다. */}

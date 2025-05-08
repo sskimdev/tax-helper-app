@@ -4,7 +4,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { supabase } from '@/lib/supabaseClient';
 import { filingRequestSchema, INCOME_TYPES } from '@/types/filingRequest';
 import type { FilingRequestFormData } from '@/types/filingRequest';
@@ -116,10 +115,10 @@ export function RequestFilingPage() {
             <FormField
               control={form.control}
               name="tax_year"
-              render={({ field }) => (
+              render={({ field }: { field: any }) => (
                 <FormItem>
                   <FormLabel>신고 대상 연도 *</FormLabel>
-                  <Select onValueChange={(value) => field.onChange(Number(value))} defaultValue={String(field.value)}>
+                  <Select onValueChange={(value: string) => field.onChange(Number(value))} defaultValue={String(field.value)}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="신고하려는 연도를 선택하세요" />
@@ -140,7 +139,7 @@ export function RequestFilingPage() {
             <FormField
               control={form.control}
               name="income_type"
-              render={({ field }) => (
+              render={({ field }: { field: any }) => (
                 <FormItem>
                   <FormLabel>주요 소득 종류 *</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
@@ -150,7 +149,7 @@ export function RequestFilingPage() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {INCOME_TYPES.map(type => (
+                      {INCOME_TYPES.map((type: string) => (
                         <SelectItem key={type} value={type}>{type}</SelectItem>
                       ))}
                     </SelectContent>
@@ -167,14 +166,14 @@ export function RequestFilingPage() {
              <FormField
               control={form.control}
               name="estimated_income"
-              render={({ field }) => (
+              render={({ field }: { field: any }) => (
                 <FormItem>
                   <FormLabel>연간 총 수입 금액 (선택)</FormLabel>
                   <FormControl>
                      <Input
                         type="number"
                         placeholder="예: 30000000 (원 단위 숫자만 입력)"
-                        onChange={e => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}
                         value={field.value === undefined || field.value === null ? '' : String(field.value)}
                         />
                   </FormControl>
@@ -190,7 +189,7 @@ export function RequestFilingPage() {
             <FormField
               control={form.control}
               name="details"
-              render={({ field }) => (
+              render={({ field }: { field: any }) => (
                 <FormItem>
                   <FormLabel>추가 요청 사항 (선택)</FormLabel>
                   <FormControl>

@@ -68,7 +68,7 @@ export function SignupPage() {
                 placeholder="m@example.com"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -79,7 +79,7 @@ export function SignupPage() {
                 placeholder="6자 이상 입력"
                 required
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
               />
             </div>
             {error && <p className="text-sm text-red-500">{error}</p>}

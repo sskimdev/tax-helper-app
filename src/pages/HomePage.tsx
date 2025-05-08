@@ -1,5 +1,4 @@
 // src/pages/HomePage.tsx
-import React from 'react';
 import { Button } from "@/components/ui/button";
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
