@@ -263,7 +263,7 @@ export function RequestFilingPage(): React.ReactNode {
             )} />
 
 <div className="space-y-2">
-               <FileUpload onFilesSelected={handleFilesSelectedFromComponent} />
+               <FileUpload onFilesStaged={handleFilesSelectedFromComponent} />
                {isSubmitting && stagedFilesForUpload.length > 0 && Object.keys(uploadProgress).length > 0 && (
                    <div className="space-y-1 mt-2 p-2 border rounded-md">
                        <p className="text-sm font-medium">파일 업로드 진행 상황:</p>
@@ -288,3 +288,5 @@ export function RequestFilingPage(): React.ReactNode {
     </Card>
   );
 }
+
+export default RequestFilingPage;

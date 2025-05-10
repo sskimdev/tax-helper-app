@@ -153,7 +153,7 @@ export function EditFilingRequestPage(): React.ReactNode {
             <FormField control={form.control} name="income_type" render={({ field }) => ( <FormItem> <FormLabel>주요 소득 종류 *</FormLabel> <Select onValueChange={field.onChange} value={field.value} > <FormControl><SelectTrigger><SelectValue placeholder="소득 종류 선택" /></SelectTrigger></FormControl> <SelectContent>{INCOME_TYPES.map(type => (<SelectItem key={type} value={type}>{type}</SelectItem>))}</SelectContent> </Select> <FormDescription>대표 소득 하나를 선택해주세요.</FormDescription> <FormMessage /> </FormItem> )}/>
             <FormField control={form.control} name="estimated_income" render={({ field }) => ( <FormItem> <FormLabel>연간 총 수입 금액 (선택)</FormLabel> <FormControl><Input type="number" placeholder="예: 30000000" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))} /></FormControl> <FormDescription>세전 수입을 대략적으로 입력해주세요.</FormDescription> <FormMessage /> </FormItem> )}/>
             <FormField control={form.control} name="details" render={({ field }) => ( <FormItem> <FormLabel>추가 요청 사항 (선택)</FormLabel> <FormControl><Textarea placeholder="추가 요청사항 입력..." className="resize-none h-24" {...field} value={field.value ?? ''} /></FormControl> <FormDescription>최대 1000자</FormDescription> <FormMessage /> </FormItem> )}/>
-            <div className="space-y-2"> <FileUpload onFilesSelected={handleNewFilesSelected} /> </div>
+            <div className="space-y-2"> <FileUpload onFilesStaged={handleNewFilesSelected} /> </div>
             {(currentManagedFiles.length > 0 || stagedNewFiles.length > 0) && (
                 <div className="space-y-2 pt-2 border-t"> <h4 className="text-sm font-medium">첨부 파일 목록 (수정 중):</h4> <ul className="list-none space-y-1 text-sm">
                     {currentManagedFiles.map((file) => ( <li key={file.path} className="flex items-center justify-between p-2 border rounded-md bg-muted/50"> <div className="flex items-center space-x-2 truncate"> <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" /> <span className="truncate" title={file.name}>{file.name}</span> <span className="text-xs text-muted-foreground">({(file.size / 1024).toFixed(1)} KB)</span> </div> <Button variant="ghost" size="icon" onClick={() => removeFileFromManagedList(file.path)} title="목록에서 제거"> <XCircle className="h-4 w-4 text-destructive" /> </Button> </li> ))}
@@ -172,3 +172,5 @@ export function EditFilingRequestPage(): React.ReactNode {
     </Card>
   );
 }
+
+export default EditFilingRequestPage;

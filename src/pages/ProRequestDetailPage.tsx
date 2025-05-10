@@ -185,7 +185,7 @@ export function ProRequestDetailPage(): React.ReactNode {
                     <CardHeader className="p-0 pb-3"><CardTitle className="text-md">새 파일 추가 (전문가용)</CardTitle></CardHeader>
                     <CardContent className="p-0">
                       <FileUpload
-                        onFilesSelected={handleNewFilesStagedByPro}
+                        onFilesStaged={handleNewFilesStagedByPro}
                         clearStagedFilesSignal={clearFileUploadSignal}
                         onStagedFilesCleared={() => setClearFileUploadSignal(false)}
                       />

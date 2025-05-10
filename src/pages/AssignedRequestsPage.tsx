@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from '@/components/ui/button';
 
 // 반환 타입을 React.ReactNode 또는 JSX.Element로 명시 (일반적으로 ReactNode가 더 유연)
-export function AssignedRequestsPage(): React.ReactNode {
+function AssignedRequestsPage(): React.ReactNode {
   const { isProfessional, professionalProfile, isLoadingPro } = useProAuth();
   // const navigate = useNavigate(); // navigate 변수 제거
 
@@ -153,3 +153,5 @@ export function AssignedRequestsPage(): React.ReactNode {
     </ProLayout>
   );
 }
+
+export default AssignedRequestsPage;

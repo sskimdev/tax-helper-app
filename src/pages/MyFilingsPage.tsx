@@ -165,6 +165,4 @@ export function MyFilingsPage() {
   );
 }
 
-// MyFilingsPage 컴포넌트를 export (기존 임시 컴포넌트와 충돌 방지 위해 App.tsx에서만 임시 컴포넌트 정의 유지)
-// 만약 App.tsx에서 임시 컴포넌트 정의를 제거했다면 아래 export 주석 해제
-// export default MyFilingsPage;
+export default MyFilingsPage;

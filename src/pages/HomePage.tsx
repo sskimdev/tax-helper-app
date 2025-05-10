@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
 
-export function HomePage() {
+function HomePage() {
   const { user, session } = useAuth();
 
   return (
@@ -45,3 +45,5 @@ export function HomePage() {
     </div>
   );
 }
+
+export default HomePage;

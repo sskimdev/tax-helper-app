@@ -221,3 +221,5 @@ export function ExpertsPage() {
     </div>
   );
 }
+
+export default ExpertsPage;

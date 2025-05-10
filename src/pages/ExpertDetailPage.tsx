@@ -204,3 +204,5 @@ export function ExpertDetailPage() {
     </div>
   );
 }
+
+export default ExpertDetailPage;
