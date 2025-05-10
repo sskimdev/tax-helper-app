@@ -128,7 +128,8 @@ export function ProRequestDetailPage(): React.ReactNode {
               .from('filing_requests')
               .update({ status: newStatus })
               .eq('id', request.id)
-              .eq('assigned_professional_id', professionalProfile.id);
+              .eq('assigned_professional_id', professionalProfile.id)
+              .match({ assigned_professional_id: professionalProfile.id });
 
           if (updateError) throw updateError;
 
