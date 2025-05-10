@@ -1,5 +1,5 @@
 // src/components/custom/FileUpload.tsx
-import React, { useState, type ChangeEvent } from 'react';
+import React, { useState, type ChangeEvent, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,9 @@ interface FileUploadProps {
   maxFiles?: number;
   maxFileSizeMB?: number;
   acceptedFileTypes?: string;
+  clearStagedFilesSignal?: boolean;
+  onStagedFilesCleared?: () => void;
+  onFilesStaged?: (selectedFiles: File[]) => void;
 }
 
 export function FileUpload({
@@ -19,10 +22,22 @@ export function FileUpload({
   maxFiles = 5,
   maxFileSizeMB = 10,
   acceptedFileTypes = "image/*,application/pdf,.hwp,.hwpx,.doc,.docx,.xls,.xlsx,.zip",
+  clearStagedFilesSignal = false,
+  onStagedFilesCleared,
+  onFilesStaged,
 }: FileUploadProps): React.ReactNode {
   const { toast } = useToast();
   const [stagedFiles, setStagedFiles] = useState<File[]>([]);
   const [hasLargeFiles, setHasLargeFiles] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (clearStagedFilesSignal) {
+      setStagedFiles([]);
+      if (onStagedFilesCleared) {
+        onStagedFilesCleared();
+      }
+    }
+  }, [clearStagedFilesSignal, onStagedFilesCleared]);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>): void => {
     if (event.target.files) {
@@ -55,9 +70,15 @@ export function FileUpload({
           const limitedFiles = newStagedFiles.slice(0, maxFiles);
           setStagedFiles(limitedFiles);
           onFilesSelected(limitedFiles);
+          if (onFilesStaged) {
+            onFilesStaged(limitedFiles);
+          }
       } else {
           setStagedFiles(newStagedFiles);
           onFilesSelected(newStagedFiles);
+          if (onFilesStaged) {
+            onFilesStaged(newStagedFiles);
+          }
       }
       event.target.value = "";
     }
@@ -69,6 +90,9 @@ export function FileUpload({
       setHasLargeFiles(stillHasLargeFiles);
       setStagedFiles(newStagedFiles);
       onFilesSelected(newStagedFiles);
+      if (onFilesStaged) {
+        onFilesStaged(newStagedFiles);
+      }
   };
 
   return (

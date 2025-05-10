@@ -19,7 +19,7 @@ const ExpertsPage = lazy(() => import('./pages/ExpertsPage').then(module => ({ d
 const ExpertDetailPage = lazy(() => import('./pages/ExpertDetailPage').then(module => ({ default: module.ExpertDetailPage })));
 const ProDashboardPage = lazy(() => import('./pages/ProDashboardPage').then(module => ({ default: module.ProDashboardPage })));
 const AssignedRequestsPage = lazy(() => import('./pages/AssignedRequestsPage').then(module => ({ default: module.AssignedRequestsPage })));
-const ProRequestDetailPage = lazy(() => import('./pages/ProRequestDetailPage').then(module => ({ default: module.ProRequestDetailPage })));
+const ProRequestDetailPage = lazy(() => import('./pages/ProRequestDetailPage'));
 
 const NotFoundPage = () => <div><h1>404 - 페이지를 찾을 수 없습니다.</h1></div>;
 
