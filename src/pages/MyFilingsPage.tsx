@@ -114,7 +114,7 @@ export function MyFilingsPage() {
       case 'cancelled': return '취소됨';
       default: return status;
     }
-  }
+  };
 
   return (
     <div className="space-y-4">
