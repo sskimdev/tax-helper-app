@@ -1,7 +1,7 @@
 // src/pages/ProRequestDetailPage.tsx
-import { useState, useEffect, useCallback } from 'react'; // React import 제거
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Navigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+// import { useAuth } from '@/contexts/AuthContext'; // useAuth가 직접 사용되지 않으면 제거
 import { useProAuth } from '@/hooks/useProAuth';
 import { ProLayout } from '@/components/layout/ProLayout';
 import { supabase } from '@/lib/supabaseClient';
@@ -16,38 +16,35 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 
 const DetailItem = ({ label, value }: { label: string, value: React.ReactNode }) => (
-    <div className="grid grid-cols-3 gap-4 items-start">
+    <div className="grid grid-cols-3 gap-4 items-start py-2">
         <dt className="text-sm font-medium text-muted-foreground">{label}</dt>
         <dd className="text-sm col-span-2">{value || '-'}</dd>
     </div>
 );
 
-// 반환 타입을 React.ReactNode 또는 JSX.Element로 명시
 export function ProRequestDetailPage(): React.ReactNode {
   const { id: requestId } = useParams<{ id: string }>();
-  const { user: authUser } = useAuth();
+  // const { user: authUser } = useAuth(); // authUser가 직접 사용되지 않으면 제거 또는 주석 처리
   const { isProfessional, professionalProfile, isLoadingPro } = useProAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const [request, setRequest] = useState<FilingRequest | null>(null);
   const [client, setClient] = useState<Pick<User, 'id' | 'email'> | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(true); // 'loading' 변수 선언
   const [error, setError] = useState<string | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState<boolean>(false);
 
   const loadRequestAndClientData = useCallback(async (): Promise<void> => {
-    if (isLoadingPro || !isProfessional || !professionalProfile?.id || !requestId || !authUser) {
-      if (!isLoadingPro && !isProfessional) {
-         setError("전문가만 접근할 수 있습니다.");
-      } else if (!isLoadingPro && !requestId) {
-         setError("의뢰 ID가 유효하지 않습니다.");
-      }
-       if (!isLoadingPro) setLoading(false);
-       return;
+    if (isLoadingPro) return;
+
+    if (!isProfessional || !professionalProfile?.id || !requestId) {
+      setError(isProfessional ? "의뢰 ID가 유효하지 않습니다." : "전문가만 접근할 수 있습니다.");
+      setLoading(false); // 로딩 상태 해제
+      return;
     }
 
-    setLoading(true);
+    setLoading(true); // 데이터 로딩 시작, 여기서 'loading' 사용
     setError(null);
     setClient(null);
     setRequest(null);
@@ -57,58 +54,62 @@ export function ProRequestDetailPage(): React.ReactNode {
         .from('filing_requests')
         .select<'*', FilingRequest>('*')
         .eq('id', requestId)
+        .eq('assigned_professional_id', professionalProfile.id)
         .single();
 
       if (requestError || !requestData) {
-        throw new Error(requestError?.message || "의뢰 정보를 불러올 수 없거나 권한이 없습니다.");
+        let errMsg = "의뢰 정보를 불러올 수 없거나 권한이 없습니다.";
+        if (requestError?.code === 'PGRST116') {
+            errMsg = "해당 의뢰를 찾을 수 없거나 배정된 전문가가 아닙니다.";
+        } else if (requestError) {
+            errMsg = `데이터 로딩 오류: ${requestError.message}`;
+        }
+        throw new Error(errMsg);
       }
       setRequest(requestData);
 
-      if (requestData.user_id) {
-          try {
-            const { data: profileData, error: profileError } = await supabase
-                .from('user_profiles')
-                .select('id, email') // email 타입은 text (string | null)로 가정
-                .eq('id', requestData.user_id)
-                .single();
+      // ProRequestDetailPage.tsx 내 loadRequestAndClientData 함수 내부
+        if (requestData.user_id) {
+            try {
+                const { data: profileData, error: profileError } = await supabase
+                    .from('user_profiles')
+                    .select('id, email')
+                    .eq('id', requestData.user_id)
+                    .single();
 
-                if (profileError || !profileData) {
-                    console.warn("의뢰인 프로필 정보를 가져올 수 없습니다:", profileError?.message);
+                if (profileError) { // profileError가 존재하면 (데이터가 없거나 다른 DB 오류)
+                    console.warn(`의뢰인(ID: ${requestData.user_id}) 프로필 정보 조회 실패:`, profileError.message);
                     setClient({ id: requestData.user_id, email: '정보 조회 불가' });
-                } else {
-                     // profileData의 타입을 명시적으로 정의하거나, select 시 타입 제네릭 사용
-                     // 예시: const { data: profileData, error: profileError } = await supabase
-                     // .from('user_profiles')
-                     // .select<'id' | 'email', {id: string, email: string | null}>('id, email')
-                     // .eq('id', requestData.user_id)
-                     // .single();
-                     // 그러면 profileData는 {id: string, email: string | null} | null 타입이 됩니다.
-                     setClient({ id: profileData.id, email: profileData.email }); // any 없이 직접 접근
+                } else if (profileData) { // profileData가 정상적으로 조회되었을 때
+                    setClient({ id: profileData.id, email: profileData.email || '이메일 정보 없음' });
+                } else { // profileData가 null인 경우 (이론상 .single()과 profileError 조합이면 여기까지 안 올 수 있음)
+                    console.warn(`의뢰인(ID: ${requestData.user_id}) 프로필 정보가 없습니다.`);
+                    setClient({ id: requestData.user_id, email: '프로필 없음' });
                 }
-          } catch (clientError) {
-               console.warn("의뢰인 정보 조회 중 오류:", clientError);
-               setClient({ id: requestData.user_id, email: '정보 조회 오류' });
-          }
-      }
+            } catch (clientFetchError: unknown) {
+                console.error("의뢰인 정보 조회 중 예외 발생:", clientFetchError);
+                setClient({ id: requestData.user_id, email: '정보 조회 오류' });
+            }
+        }
     } catch (err: unknown) {
       console.error("Error loading request/client data:", err);
       let message = "데이터 로딩 중 알 수 없는 오류 발생";
       if (err instanceof Error) message = err.message;
       setError(message);
     } finally {
-      setLoading(false);
+      setLoading(false); // 데이터 로딩 완료, 여기서 'loading' 사용
     }
-  }, [requestId, authUser, isProfessional, professionalProfile, isLoadingPro]);
+  // 의존성 배열에서 authUser 제거 (만약 useAuth를 제거했다면)
+  }, [requestId, isProfessional, professionalProfile, isLoadingPro]);
 
   useEffect(() => {
     loadRequestAndClientData();
   }, [loadRequestAndClientData]);
 
 
-  // newStatus 파라미터 사용하도록 수정 (13단계에서 실제 로직 구현 예정)
   const handleUpdateStatus = async (newStatus: 'processing' | 'completed'): Promise<void> => {
       if (!request?.id || !professionalProfile?.id) {
-          toast({ title: "오류", description: "상태를 업데이트할 수 없습니다.", variant: "destructive" });
+          toast({ title: "오류", description: "상태를 업데이트할 수 없습니다 (의뢰 또는 전문가 정보 없음).", variant: "destructive" });
           return;
       }
 
@@ -123,15 +124,9 @@ export function ProRequestDetailPage(): React.ReactNode {
 
       setIsUpdatingStatus(true);
       try {
-          // 13단계에서 이 부분에 Supabase update 로직 구현
-          console.log(`상태를 ${newStatus}(으)로 변경 요청: ${request.id}`);
-          // 예시: 로컬 상태만 임시 변경
-          // setRequest(prev => prev ? { ...prev, status: newStatus } : null);
-          // toast({ title: "임시", description: `상태가 '${translateStatus(newStatus)}'(으)로 변경되었습니다.` });
-
           const { error: updateError } = await supabase
               .from('filing_requests')
-              .update({ status: newStatus }) // newStatus 사용
+              .update({ status: newStatus })
               .eq('id', request.id)
               .eq('assigned_professional_id', professionalProfile.id);
 
@@ -150,8 +145,9 @@ export function ProRequestDetailPage(): React.ReactNode {
       }
   };
 
+  // 'isLoading'을 'loading'으로 수정
   if (loading || isLoadingPro) {
-    return ( <ProLayout><div className="p-4">정보 로딩 중...</div></ProLayout> );
+    return ( <ProLayout><div className="p-4 text-center">정보 로딩 중...</div></ProLayout> );
   }
   if (!isProfessional) {
     return <Navigate to="/" replace />;
@@ -182,9 +178,9 @@ export function ProRequestDetailPage(): React.ReactNode {
    const translateStatus = (status: FilingRequest['status']): string => {
        switch (status) {
            case 'submitted': return '접수 완료';
-           case 'assigned': return '전문가 배정됨';
-           case 'processing': return '신고 진행 중';
-           case 'completed': return '신고 완료';
+           case 'assigned': return '배정 완료';
+           case 'processing': return '처리 중';
+           case 'completed': return '처리 완료';
            case 'cancelled': return '취소됨';
            default: return status;
        }
@@ -211,7 +207,7 @@ export function ProRequestDetailPage(): React.ReactNode {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    <dl className="space-y-4">
+                    <dl className="space-y-2">
                         <DetailItem label="의뢰 상태" value={<Badge variant={getStatusVariant(request.status)}>{translateStatus(request.status)}</Badge>} />
                         <Separator />
                         <DetailItem label="신고 대상 연도" value={`${request.tax_year}년`} />
@@ -221,33 +217,38 @@ export function ProRequestDetailPage(): React.ReactNode {
                         <DetailItem label="추가 요청 사항" value={request.details || '없음'} />
                     </dl>
 
-                    <div className="pt-4 border-t">
-                        <h3 className="text-base font-semibold mb-2">업무 처리</h3>
-                        <div className="flex space-x-2">
-                            {request.status === 'assigned' && (
-                                <Button
-                                    onClick={() => handleUpdateStatus('processing')}
-                                    disabled={isUpdatingStatus}
-                                >
-                                    {isUpdatingStatus ? '처리 중...' : '신고 처리 시작'}
-                                </Button>
-                            )}
-                            {request.status === 'processing' && (
-                                <Button
-                                    onClick={() => handleUpdateStatus('completed')}
-                                    disabled={isUpdatingStatus}
-                                >
-                                    {isUpdatingStatus ? '처리 중...' : '신고 완료 처리'}
-                                </Button>
-                            )}
+                    { (request.status === 'assigned' || request.status === 'processing') && (
+                        <div className="pt-6 border-t mt-6">
+                            <h3 className="text-base font-semibold mb-3">업무 처리</h3>
+                            <div className="flex space-x-2">
+                                {request.status === 'assigned' && (
+                                    <Button
+                                        onClick={() => handleUpdateStatus('processing')}
+                                        disabled={isUpdatingStatus}
+                                    >
+                                        {isUpdatingStatus ? '처리 중...' : '신고 처리 시작'}
+                                    </Button>
+                                )}
+                                {request.status === 'processing' && (
+                                    <Button
+                                        onClick={() => handleUpdateStatus('completed')}
+                                        disabled={isUpdatingStatus}
+                                    >
+                                        {isUpdatingStatus ? '처리 중...' : '신고 완료 처리'}
+                                    </Button>
+                                )}
+                            </div>
                         </div>
-                         {request.status === 'completed' && (
-                             <p className="text-sm text-green-600 mt-2">이 의뢰는 신고 완료 처리되었습니다.</p>
-                         )}
-                          {request.status === 'cancelled' && (
-                             <p className="text-sm text-destructive mt-2">이 의뢰는 사용자에 의해 취소되었습니다.</p>
-                         )}
-                    </div>
+                    )}
+                     {request.status === 'completed' && (
+                         <p className="text-sm text-green-600 mt-4 pt-4 border-t">이 의뢰는 전문가에 의해 신고 완료 처리되었습니다.</p>
+                     )}
+                      {request.status === 'cancelled' && (
+                         <p className="text-sm text-destructive mt-4 pt-4 border-t">이 의뢰는 사용자에 의해 취소되었습니다.</p>
+                     )}
+                      {request.status === 'submitted' && (
+                         <p className="text-sm text-blue-600 mt-4 pt-4 border-t">이 의뢰는 아직 전문가에게 배정되지 않았습니다.</p>
+                     )}
                 </CardContent>
             </Card>
         </div>
